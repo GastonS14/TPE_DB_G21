@@ -1,3 +1,4 @@
+--B-----------------RESTRICCIONES-----------------
 --DECLARATIVOS
 --A-Se debe consistir que la fecha de inicio de la publicación de la edición sea
 -- anterior a la fecha de fin de la publicación del mismo si esta última no es nula.
@@ -37,3 +38,48 @@ CHECK (NOT EXISTS(
     ON (ed.id_evento = e.id_evento)
     WHERE pr.id_distrito != e.id_distrito
 ));
+--C-----------------SERVICIOS-----------------
+--Se debe mantener sincronizados los siguientes aspectos:
+--1-Cuando se crea un evento, debe crear las ediciones de ese evento,
+        -- colocando como fecha inicial el 1 del mes en el cual se creó el evento
+        -- y como presupuesto, el mismo del año pasado más un 10 %,
+        -- en caso de que no hubiera uno el año pasado, colocar 100.000
+--2-Todas las fechas, entre EVENTO y EVENTO_EDICION (recordar en EVENTO_EDICIO también) tienen que ser coherentes.
+--D-----------------VISTAS-----------------
+--A-Identificador de los Eventos cuya fecha de realización de su último encuentro esté en el primer trimestre de 2020.
+--CREATE VIEW
+
+-- ->to check requirements
+/*CREATE VIEW G21_ultimo_evento_primer_trimestre AS
+SELECT * FROM g21_evento
+WHERE
+WITH LOCAL CHECK OPTION;*/
+
+--B-Datos completos de los distritos indicando la cantidad de eventos en cada uno
+--NO ACTUALIZABLE->COUNT(*)
+CREATE VIEW G21_cant_eventos_distrito AS
+SELECT d.id_distrito, d.nombre_pais, d.nombre_provincia, d.nombre_distrito, count(*) as Cantidad_eventos
+FROM g21_distrito d
+JOIN g21_evento e
+ON (d.id_distrito = e.id_distrito)
+GROUP BY d.id_distrito
+ORDER BY id_distrito;
+--C-Datos Categorías que poseen eventos en todas sus subcategorías.
+--ACTUALIZABLE->PRESERVED KEY
+CREATE VIEW G21_cat_wit_subcat_without_events AS
+SELECT c.id_categoria, c.nombre_categoria
+FROM g21_categoria c
+JOIN g21_subcategoria s
+ON c.id_categoria = s.id_categoria
+WHERE NOT EXISTS(
+    SELECT 1
+    FROM g21_evento e
+    WHERE (s.id_categoria = e.id_categoria AND s.id_subcategoria = e.id_subcategoria)
+    )
+GROUP BY c.id_categoria
+ORDER BY c.id_categoria;
+--D-----------------SITIO-----------------
+--1-Listado del TOP 10 de usuarios que participa en más eventos. getTopUsers-> only name?
+--2-Listado de usuarios de acuerdo a un patrón de búsqueda que contenga todos los datos del usuario
+-- junto con la cantidad de participaciones que tenga. getUserWithFilter() -> userDate+count(participation)
+
