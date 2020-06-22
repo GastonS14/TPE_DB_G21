@@ -79,7 +79,18 @@ WHERE NOT EXISTS(
 GROUP BY c.id_categoria
 ORDER BY c.id_categoria;
 --D-----------------SITIO-----------------
---1-Listado del TOP 10 de usuarios que participa en más eventos. getTopUsers-> only name?
+--1-Listado del TOP 10 de usuarios que participa en más eventos. getTopUsers
+--view top 10 users -> actualizable
+CREATE VIEW G21_top_usuarios_events AS
+SELECT u.id_usuario, u.nombre, u.apellido, u.e_mail, u.password, count(*) AS cant_eventos_usuario
+FROM g21_usuario u
+JOIN g21_evento e
+ON u.id_usuario = e.id_usuario
+GROUP BY u.id_usuario
+ORDER BY 6 DESC, 1
+LIMIT 10;
+--getView
+SELECT * FROM G21_top_usuarios_events;--vista de top users
 --2-Listado de usuarios de acuerdo a un patrón de búsqueda que contenga todos los datos del usuario
 -- junto con la cantidad de participaciones que tenga. getUserWithFilter() -> userDate+count(participation)
 

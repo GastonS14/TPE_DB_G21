@@ -1,9 +1,9 @@
 --DECLARATIVOS
 --A
-ALTER TABLE g21_evento_edicion
+ALTER TABLE G21_evento_edicion
 DROP CONSTRAINT control_date CASCADE;
 --B
-ALTER TABLE g21_subcategoria
+ALTER TABLE G21_subcategoria
 DROP CONSTRAINT max_subcategorias CASCADE;
 --C
 DROP ASSERTION ASS_max_presupuesto CASCADE;
