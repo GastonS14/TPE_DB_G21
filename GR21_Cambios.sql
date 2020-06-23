@@ -14,6 +14,7 @@ CHECK (NOT EXISTS(
     GROUP BY id_categoria
     HAVING count(distinct id_subcategoria) > 50
     ));
+--TRIGGER & FUNCTION
 --C-La suma de los aportes que recibe una edición de un evento de sus patrocinantes
 --  no puede superar el presupuesto establecido para la misma.
 CREATE ASSERTION ASS_max_presupuesto
@@ -23,8 +24,9 @@ CHECK (NOT EXISTS(
     JOIN g21_patrocinios p
     ON (ed.id_evento = p.id_evento AND ed.nro_edicion = p.nro_edicion)
     GROUP BY ed.id_evento, ed.nro_edicion, ed.presupuesto
-    HAVING sum(p.aporte) < ed.presupuesto
+    HAVING sum(p.aporte) > ed.presupuesto
 ));
+--TRIGGER & FUNCTION
 --D-Los patrocinantes solo pueden patrocinar ediciones de eventos de su mismo distrito
 CREATE ASSERTION ASS_patrocinantes_mismo_distrito_evento
 CHECK (NOT EXISTS(
@@ -38,6 +40,7 @@ CHECK (NOT EXISTS(
     ON (ed.id_evento = e.id_evento)
     WHERE pr.id_distrito != e.id_distrito
 ));
+--TRIGGER & FUNCTION
 --C-----------------SERVICIOS-----------------
 --Se debe mantener sincronizados los siguientes aspectos:
 --1-Cuando se crea un evento, debe crear las ediciones de ese evento,
@@ -48,13 +51,15 @@ CHECK (NOT EXISTS(
 --D-----------------VISTAS-----------------
 --A-Identificador de los Eventos cuya fecha de realización de su último encuentro esté en el primer trimestre de 2020.
 --CREATE VIEW
-
--- ->to check requirements
-/*CREATE VIEW G21_ultimo_evento_primer_trimestre AS
-SELECT * FROM g21_evento
-WHERE
-WITH LOCAL CHECK OPTION;*/
-
+CREATE VIEW G21_ultimo_evento_pimer_trimestre_2020 AS
+SELECT id_evento
+FROM g21_evento_edicion
+WHERE fecha_edicion
+BETWEEN '2020-01-01'
+AND '2020-03-31'
+ORDER BY fecha_edicion DESC
+LIMIT 1
+WITH LOCAL CHECK OPTION;--No permita insert/update en la vista sin que el usuario se dé cuenta
 --B-Datos completos de los distritos indicando la cantidad de eventos en cada uno
 --NO ACTUALIZABLE->COUNT(*)
 CREATE VIEW G21_cant_eventos_distrito AS

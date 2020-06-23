@@ -4,13 +4,30 @@ Questions
 DECLARATIVOS
 	no implementados en postgre
 		como hacer las RI, funciones?
+			triggers
 
 SERVICIOS
-	A-crear ediciones basado en que? repetir? con intervalo o año?
+	A-crear ediciones basado en que?
+	repetir = false 
+		1 edicion
+	else 
+		crear + ediciones//definido por nosotros
+			fijas
+			set interval o año? con disparador
+
 	B-a que se refiere con coherencia especificamente?
+		fecha pub <  fecha edicion dia y mes del evento en evento < fecha fin pub 
 
 SITIO
 	B-patron de busqueda like what?
+		DATO DE USUARIO->RETURNS->info personal, cant eventos publicados, ediciones de los eventos
 
-
+implementar un sitio 
+	proveer una api con una collecion de postman?
+		YES
+	sitio completo? NO	
+		publicar con registro
+		incluye login de usuario
+		crud categorias
+		crud usuario
 
