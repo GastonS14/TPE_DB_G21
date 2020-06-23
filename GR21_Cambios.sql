@@ -6,18 +6,49 @@ ALTER TABLE g21_evento_edicion
 ADD CONSTRAINT control_date
 CHECK (fecha_fin_pub IS NULL OR fecha_inicio_pub < fecha_fin_pub);
 --B-Cada categoría no debe superar las 50 subcategorías.
-ALTER TABLE g21_subcategoria
+/*ALTER TABLE g21_subcategoria
 ADD CONSTRAINT max_subcategorias
 CHECK (NOT EXISTS(
     SELECT 1
     FROM g21_subcategoria
     GROUP BY id_categoria
-    HAVING count(distinct id_subcategoria) > 50
-    ));
+    HAVING count(id_subcategoria) > 50
+    ));*/
 --TRIGGER & FUNCTION
+CREATE TRIGGER TR_GR21_maximo_subcategorias
+BEFORE INSERT OR UPDATE OF id_categoria
+ON g21_subcategoria
+FOR EACH ROW
+EXECUTE PROCEDURE TRFN_GR21_maximo_subcategorias();
+CREATE OR REPLACE FUNCTION TRFN_GR21_maximo_subcategorias() RETURNS TRIGGER AS $$
+    DECLARE
+        cant int;
+    BEGIN
+        IF TG_OP = 'INSERT' THEN
+            SELECT count(*) INTO cant
+            FROM g21_subcategoria s
+            WHERE s.id_categoria = NEW.id_categoria
+            GROUP BY NEW.id_categoria;
+            IF (cant >= 50) THEN
+                RAISE EXCEPTION 'Supero el máximo de subcategorías: %', cant;
+            END IF;
+            RETURN NEW;
+        END IF;
+        IF TG_OP = 'UPDATE' THEN
+            SELECT count(*) INTO cant
+            FROM g21_subcategoria s
+            WHERE s.id_categoria = NEW.id_categoria
+            GROUP BY s.id_categoria;
+            IF (cant >= 50) THEN
+                RAISE EXCEPTION 'Supero el máximo de subcategorías: %, el update no se pudo realizar', cant;
+            END IF;
+            RETURN NEW;
+        END IF;
+    END $$
+LANGUAGE 'plpgsql';
 --C-La suma de los aportes que recibe una edición de un evento de sus patrocinantes
 --  no puede superar el presupuesto establecido para la misma.
-CREATE ASSERTION ASS_max_presupuesto
+/*CREATE ASSERTION ASS_max_presupuesto
 CHECK (NOT EXISTS(
     SELECT 1
     FROM g21_evento_edicion ed
@@ -25,8 +56,73 @@ CHECK (NOT EXISTS(
     ON (ed.id_evento = p.id_evento AND ed.nro_edicion = p.nro_edicion)
     GROUP BY ed.id_evento, ed.nro_edicion, ed.presupuesto
     HAVING sum(p.aporte) > ed.presupuesto
-));
+));*/
 --TRIGGER & FUNCTION
+--EVENTO EDICION
+CREATE TRIGGER TR_GR21_presupuesto_mayor_aporte
+BEFORE UPDATE OF presupuesto
+ON g21_evento_edicion
+FOR EACH ROW
+EXECUTE PROCEDURE TRFN_GR21_presupuesto_mayor_aporte_ed();
+CREATE OR REPLACE FUNCTION TRFN_GR21_presupuesto_mayor_aporte_ed() RETURNS TRIGGER AS $$
+    DECLARE
+        suma_aporte int;
+    BEGIN
+        SELECT sum(aporte) INTO suma_aporte
+        FROM g21_patrocinios p
+        WHERE p.id_evento = OLD.id_evento
+        AND p.nro_edicion = OLD.nro_edicion;
+        IF (suma_aporte > NEW.presupuesto) THEN
+            RAISE EXCEPTION 'Los aportes (%) son mayores al presupuesto: %', suma_aporte, NEW.presupuesto;
+        END IF;
+        RETURN NEW;
+    END $$
+LANGUAGE 'plpgsql';
+--PATROCINIOS
+CREATE TRIGGER TR_GR21_presupuesto_mayor_aporte_patrocinio
+BEFORE INSERT OR UPDATE OF id_evento, nro_edicion, aporte
+ON g21_patrocinios
+FOR EACH ROW
+EXECUTE PROCEDURE TRFN_GR21_presupuesto_mayor_aporte_patrocinio();
+CREATE OR REPLACE FUNCTION TRFN_GR21_presupuesto_mayor_aporte_patrocinio() RETURNS TRIGGER AS $$
+    DECLARE
+        suma_aporte numeric(8,2);
+        presupuesto numeric(8,2);
+        dif_aporte numeric(8,2);
+    BEGIN
+        IF TG_OP = 'INSERT' THEN
+            SELECT sum(aporte) INTO suma_aporte
+            FROM g21_patrocinios p
+            WHERE p.id_evento = NEW.id_evento
+            AND p.nro_edicion = NEW.nro_edicion
+            GROUP BY p.id_evento, p.nro_edicion;
+            SELECT ed.presupuesto INTO presupuesto
+            FROM g21_evento_edicion ed
+            WHERE ed.id_evento = NEW.id_evento
+            AND ed.nro_edicion = NEW.nro_edicion;
+            IF (presupuesto-suma_aporte-NEW.aporte < 0) THEN
+                RAISE EXCEPTION 'El aporte supera al presupuesto(pres: %, suma_aporte: %, aporte: %)', presupuesto, suma_aporte, NEW.aporte;
+            END IF;
+        END IF;
+        IF TG_OP = 'UPDATE' THEN
+            --aporte
+            SELECT sum(aporte) INTO suma_aporte
+            FROM g21_patrocinios p
+            WHERE p.id_evento = NEW.id_evento
+            AND p.nro_edicion = NEW.nro_edicion
+            GROUP BY p.id_evento, p.nro_edicion;
+            SELECT ed.presupuesto INTO presupuesto
+            FROM g21_evento_edicion ed
+            WHERE ed.id_evento = NEW.id_evento
+            AND ed.nro_edicion = NEW.nro_edicion;
+            dif_aporte = NEW.aporte - OLD.aporte;
+            IF (presupuesto-suma_aporte-dif_aporte < 0) THEN
+                RAISE EXCEPTION 'El aporte supera al presupuesto(pres: %, suma_aporte: %, diferencia nuevo aporte: %)', presupuesto, suma_aporte, dif_aporte;
+            END IF;
+        END IF;
+        RETURN NEW;
+    END $$
+LANGUAGE 'plpgsql';
 --D-Los patrocinantes solo pueden patrocinar ediciones de eventos de su mismo distrito
 CREATE ASSERTION ASS_patrocinantes_mismo_distrito_evento
 CHECK (NOT EXISTS(
@@ -39,6 +135,7 @@ CHECK (NOT EXISTS(
     JOIN g21_evento e
     ON (ed.id_evento = e.id_evento)
     WHERE pr.id_distrito != e.id_distrito
+    OR e.id_distrito IS NULL
 ));
 --TRIGGER & FUNCTION
 --C-----------------SERVICIOS-----------------
