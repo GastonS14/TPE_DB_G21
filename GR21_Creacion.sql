@@ -1,4 +1,4 @@
--- Created by Vertabelo (http://vertabelo.com)
+-- Created by Vertabelo 
 -- Last modification date: 2020-06-12 16:30:46.933
 
 -- tables
