@@ -47,88 +47,91 @@ CHECK (NOT EXISTS(
 create or replace function FN_GR21_crear_edicion_evento() returns trigger as
 $$
     declare
-        ultimaEdicion int;
+        ultimaEdicionEvento int;
         nroEdicion int;
-        fechaInicial date;
-        presupuestoAnioPasado int;
-        presupuestoActual int;
+        fechaInicioPublicacion date;
+        presupuestoAnioPasado numeric(8,2);
+        presupuestoActual numeric(8,2);
     begin
         if tg_table_name = 'gr21_evento' then
-            /* se determina cuál es el número de la última edición buscando
-            el número más grande asociado al evento que se quiere agregar. */
-            select max(nro_edicion) into ultimaEdicion
-            from gr21_evento_edicion
-            where id_evento = new.id_evento
-            group by id_evento;
-
-            /* si ultimaEdicion es null quiere decir que todavía no existe ninguna edición
-            de ese evento. Por lo tanto el que se quiere agregar va a ser el primero. */
-            if ultimaEdicion is null then
-                nroEdicion = 1;
-            else
-                nroEdicion = ultimaEdicion + 1;
-            end if;
-
-            /* se determina la fecha inicial: año actual (2020) - mes - dia (1) */
-            fechaInicial = date(concat(extract(year from current_date), '-', new.mes_evento, '-', 1));
-
-            /* se busca presupuesto del mismo evento pero del año pasado. Si no existe se asigna 100000 */
+             -- Se busca el presupuesto del año pasado asociado al evento. Si no existe se asigna 100000.
             select presupuesto into presupuestoAnioPasado
             from gr21_evento
                 join gr21_evento_edicion on gr21_evento.id_evento = gr21_evento_edicion.id_evento
-            where extract(year from fecha_inicio_pub) = extract(year from fechaInicial) - 1;
+            where extract(year from fecha_inicio_pub) = extract(year from fechaInicioPublicacion) - 1;
 
             if presupuestoAnioPasado is null then
                 presupuestoActual = 100000;
             else
-                presupuestoActual = presupuestoAnioPasado + 10 * presupuestoAnioPasado / 100; --> presupuestoAnioPasado + 10%
+                presupuestoActual = presupuestoAnioPasado + 10 * presupuestoAnioPasado / 100; -- presupuestoAnioPasado + 10%
             end if;
 
-            insert into gr21_evento_edicion (id_evento, nro_edicion, fecha_inicio_pub, fecha_fin_pub, presupuesto, fecha_edicion)
-            values (new.id_evento, nroEdicion, fechaInicial, null, presupuestoActual, date(concat(extract(year from current_date), '-', new.mes_evento, '-', new.dia_evento)));
+            -- Se determina cuál es el número de la última edición asociado al evento que se quiere agregar.
+            select max(nro_edicion) into ultimaEdicionEvento
+            from gr21_evento_edicion
+            where id_evento = new.id_evento;
 
+            /* Si 'ultimaEdicionEvento' es null entonces todavía no existe ninguna edición
+            de ese evento. Por lo tanto el evento que se quiere agregar va a ser el primero. */
+            if ultimaEdicionEvento is null then
+                nroEdicion = 1;
+            else
+                nroEdicion = ultimaEdicionEvento + 1;
+            end if;
+
+            -- Se determina la fecha inicial de la publicación, de manera que empiece el primer día del mes del evento.
+            fechaInicioPublicacion = date(concat(extract(year from current_date), '-', new.mes_evento, '-', 1));
+
+            -- Se agrega la edición del evento a la tabla 'gr21_evento_edicion'.
+            insert into gr21_evento_edicion (id_evento, nro_edicion, fecha_inicio_pub, fecha_fin_pub, presupuesto, fecha_edicion)
+            values (new.id_evento, nroEdicion, fechaInicioPublicacion, null, presupuestoActual, date(concat(extract(year from current_date), '-', new.mes_evento, '-', new.dia_evento)));
+
+            -- Si el atributo repetir es true, se agrega una edición más para el año entrante.
             if new.repetir is true then
                 insert into gr21_evento_edicion (id_evento, nro_edicion, fecha_inicio_pub, fecha_fin_pub, presupuesto, fecha_edicion)
                 values (new.id_evento, nroEdicion+1, date(concat(extract(year from current_date)+1, '-', new.mes_evento, '-', 1)), null, presupuestoActual, date(concat(extract(year from current_date)+1, '-', new.mes_evento, '-', new.dia_evento)));
             end if;
         end if;
+
         if tg_table_name = 'gr21_evento_edicion' then
-            /* se busca presupuesto del mismo evento pero del año pasado. Si no existe se asigna 100000 */
-            select presupuesto into presupuestoAnioPasado
-            from gr21_evento join gr21_evento_edicion
-                 on gr21_evento.id_evento = gr21_evento_edicion.id_evento
-            where extract(year from fecha_inicio_pub) = extract(year from new.fecha_inicio_pub) - 1
-                and gr21_evento.id_evento = new.id_evento;
+            declare
+                cantEventosAnioPasado int;
+            begin
+                /* Se determina cuántas veces se llevó a cabo el evento el año anterior. Por ejemplo, si el evento
+                   que se quiere agregar es del 2021, se pregunta cuántas veces existió ese evento en 2020. */
+                select count(*) into cantEventosAnioPasado
+                from gr21_evento_edicion g
+                where g.id_evento = 1 and extract(year from fecha_inicio_pub) = extract (year from new.fecha_inicio_pub) - 1
+                group by extract (year from fecha_inicio_pub);
 
-            if presupuestoAnioPasado is null then
-                presupuestoActual = 100000;
-            else
-                presupuestoActual = presupuestoAnioPasado + 10 * presupuestoAnioPasado / 100; --> presupuestoAnioPasado + 10%
-            end if;
+                /* Si el evento se llevó a cabo más de una vez el año pasado, se realiza un promedio del presupuesto y se lo asigna
+                   al evento que se quiere agregar (más un 10%). */
+                if cantEventosAnioPasado > 1 then
+                    select avg(presupuesto) into presupuestoAnioPasado
+                    from gr21_evento_edicion g
+                    where g.id_evento = new.id_evento and extract(year from fecha_inicio_pub) = extract (year from new.fecha_inicio_pub) - 1
+                    group by extract (year from fecha_inicio_pub);
 
-            update gr21_evento_edicion
-            set presupuesto = presupuestoActual
-            where id_evento = new.id_evento and nro_edicion = new.nro_edicion;
-
-            if new.fecha_edicion is null then
-                update gr21_evento_edicion
-                set fecha_edicion = current_date
-                where id_evento = new.id_evento and nro_edicion = new.nro_edicion;
-            end if;
-
+                    new.presupuesto = presupuestoAnioPasado + 10 * presupuestoAnioPasado / 100;
+                else
+                    -- Si no, se determina un presupuesto de 100000.
+                    new.presupuesto = 100000;
+                end if;
+            end;
         end if;
+
         return new;
     end;
 $$
 language 'plpgsql';
 
-create trigger TR_GR21_g21_evento_checkEvento
+create trigger TR_GR21_evento_checkEvento
 after insert
 on gr21_evento
 for each row execute procedure FN_GR21_crear_edicion_evento();
 
-create trigger TR_GR21_g21_evento_edicion_checkEvento
-after insert
+create trigger TR_GR21_evento_edicion_checkEvento
+before insert
 on gr21_evento_edicion
 for each row execute procedure FN_GR21_crear_edicion_evento();
 
@@ -159,7 +162,7 @@ $$
 $$
 language 'plpgsql';
 
-create trigger TR_GR21_g21_evento_sync_fechas
+create trigger TR_GR21_evento_sync_fechas
 after update of dia_evento, mes_evento
 on gr21_evento
 for each row execute procedure FN_GR21_sync_fechas();
@@ -169,35 +172,11 @@ for each row execute procedure FN_GR21_sync_fechas();
 ALTER TABLE gr21_evento_edicion
     ALTER COLUMN fecha_edicion SET NOT NULL;
 
-/* 'fecha_edicion' no puede ser menor a 'fecha_inicio_pub' porque no tendría
-   sentido que se publique la edición de un evento que ya tuvo lugar en el pasado. */
-alter table gr21_evento_edicion
-add constraint check_fecha_edicion
-check (fecha_edicion >= fecha_inicio_pub);
-
 /* 'fecha_inicio_pub' tiene que tener dia = 1
    según lo solicitado en el inciso c (Servicios). */
 alter table gr21_evento_edicion
 add constraint check_fecha_inicio_pub
 check (extract(day from fecha_inicio_pub) = 1);
-
-
-insert into gr21_usuario (id_usuario, nombre, apellido, e_mail, password) values (1, 'pedro', 'chatelain', 'd', 'jajaxxx');
-
-insert into gr21_categoria (id_categoria, nombre_categoria) values (1, 'dea');
-
-insert into gr21_subcategoria (id_categoria, id_subcategoria, nombre_subcategoria) values (1, 1, 'deaxxx');
-
-insert into gr21_evento
-    (id_evento, nombre_evento, descripcion_evento, id_categoria, id_subcategoria, id_usuario, id_distrito, dia_evento, mes_evento, repetir)
-values (1, 'dearlp', 'dearlxeo', 1, 1, 1, null, 5, 8, true);
-
-insert into gr21_evento_edicion (id_evento, nro_edicion, fecha_inicio_pub, fecha_fin_pub, presupuesto, fecha_edicion)
-values (1, 3, '2022-4-1', '2022-6-1', 3, '2022-4-5');
-
-update gr21_evento set dia_evento = 10, mes_evento = 10 where id_evento = 1;
-
-select * from gr21_evento; select * from gr21_evento_edicion;
 
 
 --D-----------------VISTAS-----------------
