@@ -101,16 +101,19 @@ $$
                    que se quiere agregar es del 2021, se pregunta cuántas veces existió ese evento en 2020. */
                 select count(*) into cantEventosAnioPasado
                 from gr21_evento_edicion g
-                where g.id_evento = 1 and extract(year from fecha_inicio_pub) = extract (year from new.fecha_inicio_pub) - 1
-                group by extract (year from fecha_inicio_pub);
+                where g.id_evento = new.id_evento and extract(year from fecha_edicion) = extract (year from new.fecha_edicion) - 1
+                group by extract (year from fecha_edicion);
 
-                /* Si el evento se llevó a cabo más de una vez el año pasado, se realiza un promedio del presupuesto y se lo asigna
-                   al evento que se quiere agregar (más un 10%). */
-                if cantEventosAnioPasado > 1 then
-                    select avg(presupuesto) into presupuestoAnioPasado
+                /* Si el evento se llevó a cabo el año pasado, se busca el presupuesto de la
+                   última edición y se lo asigna al evento que se quiere agregar (más un 10%). */
+                if cantEventosAnioPasado >= 1 then
+                    select presupuesto into presupuestoAnioPasado
                     from gr21_evento_edicion g
-                    where g.id_evento = new.id_evento and extract(year from fecha_inicio_pub) = extract (year from new.fecha_inicio_pub) - 1
-                    group by extract (year from fecha_inicio_pub);
+                    where g.id_evento = new.id_evento and fecha_edicion in (
+                        select max(fecha_edicion)
+                        from gr21_evento_edicion g
+                        where g.id_evento = new.id_evento and extract(year from fecha_edicion) = extract(year from new.fecha_edicion) - 1
+                    );
 
                     new.presupuesto = presupuestoAnioPasado + 10 * presupuestoAnioPasado / 100;
                 else
