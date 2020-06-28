@@ -91,7 +91,7 @@ CREATE TABLE G21_USUARIO (
     nombre varchar(40)  NOT NULL,
     apellido varchar(40)  NOT NULL,
     e_mail varchar(320)  NOT NULL,
-    password varchar(32)  NOT NULL,
+    password varchar(255)  NOT NULL,
     CONSTRAINT PK_G21_USUARIO PRIMARY KEY (id_usuario)
 );
 
