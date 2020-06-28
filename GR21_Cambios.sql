@@ -32,12 +32,105 @@ CHECK (NOT EXISTS(
 CREATE ASSERTION ASS_patrocinantes_mismo_distrito_evento
 CHECK (NOT EXISTS(
     SELECT 1
-    FROM g21_patrocinante pr
-        JOIN g21_patrocinios p ON (pr.id_patrocinate = p.id_patrocinate)
-        JOIN g21_evento_edicion ed ON (p.id_evento = ed.id_evento AND p.nro_edicion = ed.nro_edicion)
-        JOIN g21_evento e ON (ed.id_evento = e.id_evento)
+    FROM gr21_patrocinante pr
+        JOIN gr21_patrocinios p ON (pr.id_patrocinate = p.id_patrocinate)
+        JOIN gr21_evento_edicion ed ON (p.id_evento = ed.id_evento AND p.nro_edicion = ed.nro_edicion)
+        JOIN gr21_evento e ON (ed.id_evento = e.id_evento)
     WHERE pr.id_distrito != e.id_distrito
 ));
+
+/* Tipo de RI: Global
+   Ámbito: Más de una tabla */
+
+/* Matriz de ayuda (TABLA: evento):
+    - INSERT: No.
+    - UPDATE: Sí. (id_distrito)
+    - DELETE: No. */
+
+create or replace function FN_GR21_ck_distrito_evento() returns trigger as
+$$
+    declare
+    begin
+        if exists (
+            SELECT 1
+            FROM gr21_patrocinante pr
+                JOIN gr21_patrocinios p ON (pr.id_patrocinate = p.id_patrocinate)
+                JOIN gr21_evento_edicion ed ON (p.id_evento = ed.id_evento AND p.nro_edicion = ed.nro_edicion)
+                JOIN gr21_evento e ON (ed.id_evento = e.id_evento)
+            WHERE pr.id_distrito != e.id_distrito and e.id_evento = new.id_evento
+        ) then
+            raise exception 'El distrito del evento no coincide con el del patrocinante';
+        end if;
+        return new;
+    end;
+$$
+language 'plpgsql';
+
+create trigger TR_GR21_evento_ck_distrito_evento
+after update of id_distrito
+on gr21_evento
+for each row execute procedure FN_GR21_ck_distrito_evento();
+
+/* Matriz de ayuda (TABLA: patrocinante):
+    - INSERT: No.
+    - UPDATE: Sí. (id_distrito)
+    - DELETE: No. */
+
+create or replace function FN_GR21_ck_distrito_patrocinante() returns trigger as
+$$
+    declare
+    begin
+        if exists (
+            SELECT 1
+            FROM gr21_patrocinante pr
+                JOIN gr21_patrocinios p ON (pr.id_patrocinate = p.id_patrocinate)
+                JOIN gr21_evento_edicion ed ON (p.id_evento = ed.id_evento AND p.nro_edicion = ed.nro_edicion)
+                JOIN gr21_evento e ON (ed.id_evento = e.id_evento)
+            WHERE pr.id_distrito != e.id_distrito and pr.id_patrocinate = new.id_patrocinate
+        ) then
+            raise exception 'El distrito no coincide con el de los eventos patrocinados';
+        end if;
+        return new;
+    end;
+$$
+language 'plpgsql';
+
+create trigger TR_GR21_evento_ck_distrito_patrocinante
+after update of id_distrito
+on gr21_patrocinante
+for each row execute procedure FN_GR21_ck_distrito_patrocinante();
+
+select * from gr21_patrocinante; update gr21_patrocinante set id_distrito = 2 where id_patrocinate = 1;
+
+/* Matriz de ayuda (TABLA: patrocinios):
+    - INSERT: Sí.
+    - UPDATE: Sí. (id_patrocinate, id_evento, nro_edicion)
+    - DELETE: No. */
+
+create or replace function FN_GR21_ck_distrito_patrocinios() returns trigger as
+$$
+    declare
+    begin
+        if exists (
+            SELECT 1
+            FROM gr21_patrocinante pr
+                JOIN gr21_patrocinios p ON (pr.id_patrocinate = p.id_patrocinate)
+                JOIN gr21_evento_edicion ed ON (p.id_evento = ed.id_evento AND p.nro_edicion = ed.nro_edicion)
+                JOIN gr21_evento e ON (ed.id_evento = e.id_evento)
+            WHERE pr.id_distrito != e.id_distrito
+                and pr.id_patrocinate = new.id_patrocinate and e.id_evento = new.id_evento and ed.nro_edicion = new.nro_edicion
+        ) then
+            raise exception 'El distrito del evento no coincide con el del patrocinante';
+        end if;
+        return new;
+    end;
+$$
+language 'plpgsql';
+
+create trigger TR_GR21_evento_ck_distrito_patrocinios
+after insert or update of id_patrocinate, id_evento, nro_edicion
+on gr21_patrocinios
+for each row execute procedure FN_GR21_ck_distrito_patrocinios();
 
 --C) SERVICIOS
 
