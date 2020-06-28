@@ -49,12 +49,6 @@
             return $sentence->fetchAll(PDO::FETCH_OBJ);
         }
 
-        //NOT USED
-        /*public function delete_user($email){
-            $sentence = $this->db->prepare("DELETE FROM g21_usuario WHERE email=?");
-            $sentence->execute(array($email));
-        }*/
-
         /*
         //optimization
         public function search_user($email){

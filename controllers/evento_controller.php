@@ -113,8 +113,6 @@
             header('Location: ' . game);
         }
         
-
-        //done
         public function delete_game($params=null){
             $this->auth_helper->check_login();
             if($this->auth_helper->get_logged_id_permiso()==1){
@@ -124,12 +122,7 @@
             header('Location: ' . game);
         }
 
-        
-
-        //done
-        
-
-        //DONE
+    
         public function sorted_games($params=null){
             $this->auth_helper->check_login();
             $categoria = $params[':ID'];
