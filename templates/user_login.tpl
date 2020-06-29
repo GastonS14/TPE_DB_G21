@@ -14,7 +14,7 @@
 	<div class="user_login">
 		<form action="login_verify" method="POST" class="user_login_form">
 			<div>
-				<h1 class="title_page">Pedro events</h1>
+				<h1 class="title_page">En un cumple events</h1>
 			</div>
 			<div class="form-group col-md-10 offset-1">
 				<input type="text" class="form-control" name="id_usuario" id="id_usuario" placeholder="Id usuario">

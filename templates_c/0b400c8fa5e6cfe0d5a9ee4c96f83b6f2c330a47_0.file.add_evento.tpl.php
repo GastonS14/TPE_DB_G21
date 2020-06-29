@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 3.1.33, created on 2020-06-28 21:11:35
+/* Smarty version 3.1.33, created on 2020-06-29 14:42:22
   from 'C:\xampp\htdocs\TPE_DB_G21\templates\add_evento.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '3.1.33',
-  'unifunc' => 'content_5ef8eb67e07571_51940098',
+  'unifunc' => 'content_5ef9e1aea7e038_22972872',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '0b400c8fa5e6cfe0d5a9ee4c96f83b6f2c330a47' => 
     array (
       0 => 'C:\\xampp\\htdocs\\TPE_DB_G21\\templates\\add_evento.tpl',
-      1 => 1593371491,
+      1 => 1593434540,
       2 => 'file',
     ),
   ),
@@ -22,7 +22,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
     'file:footer.tpl' => 1,
   ),
 ),false)) {
-function content_5ef8eb67e07571_51940098 (Smarty_Internal_Template $_smarty_tpl) {
+function content_5ef9e1aea7e038_22972872 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_subTemplateRender("file:header.tpl", $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, false);
 ?>
 <div class="weight_form_small">
@@ -57,20 +57,20 @@ $_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?>
 			<small id="id_categoria_id_subcategoria" class="form-text text-muted">Id categoria, Id subcategoria</small>	
 		</div>
 		<div class="form-group col-md-10 offset-1"> 	
-			<select name="email" class="form-control">
+			<select name="e_mail" class="form-control">
 				<?php
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['usuarios_list']->value, 'usuarios');
 if ($_from !== null) {
 foreach ($_from as $_smarty_tpl->tpl_vars['usuarios']->value) {
 ?>
-					<option><?php echo $_smarty_tpl->tpl_vars['usuarios']->value->email;?>
+					<option><?php echo $_smarty_tpl->tpl_vars['usuarios']->value->e_mail;?>
 </option>
 				<?php
 }
 }
 $_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?>
 			</select>
-			<small id="email" class="form-text text-muted">Email de usuario</small>	
+			<small id="e_mail" class="form-text text-muted">Email de usuario</small>	
 		</div>
 		<div class="form-group col-md-10 offset-1"> 	
 			<select name="id_distrito" class="form-control">

@@ -12,7 +12,7 @@
 
         function __construct(){
             $this->model = new evento_model();
-            $this->cat_model = new category_model();
+            $this->user_model = new user_model();
             $this->view = new evento_view();
             $this->auth_helper = new auth_helper();
         }
@@ -33,7 +33,7 @@
         public function add_evento(){
             $this->auth_helper->check_login();
             $distritos = $this->model->get_distritos();
-            $usuarios = $this->model->get_usuarios();
+            $usuarios = $this->user_model->get_e_mail_usuarios();
             $subcategorias = $this->model->get_subcategorias();
             $this->view->add_evento($_SESSION['permiso'], $distritos, $usuarios, $subcategorias);
         }
@@ -48,7 +48,7 @@
             $split = explode("/", $split_subcategoria);
             $id_categoria = $split[0];
             $id_subcategoria = $split[1];
-            $email = $_POST['email'];
+            $e_mail = $_POST['e_mail'];
             $id_distrito = $_POST['id_distrito'];
             $dia_evento = $_POST['dia_evento'];
             $mes_evento = $_POST['mes_evento'];
@@ -56,7 +56,7 @@
             $save = $_POST['save'];   
             if(isset($save))
                 if((!empty($id_evento)) && (!empty($nombre_evento)) && (!empty($descripcion_evento)) && (!empty($dia_evento)) && (!empty($mes_evento)) && (!empty($repetir))){
-                    $user = $this->model->get_user($email);
+                    $user = $this->user_model->get_user($e_mail);
                     $this->model->add_evento($id_evento, $nombre_evento, $descripcion_evento, $id_categoria, $id_subcategoria, $user->id_usuario, $id_distrito, $dia_evento, $mes_evento, $repetir);
                 } 
             header("Location: " . evento);
@@ -68,7 +68,7 @@
                 $id_evento = $params[':ID'];
                 $evento = $this->model->get_evento($id_evento);
                 $distritos = $this->model->get_distritos();
-                $usuarios = $this->model->get_usuarios();
+                $usuarios = $this->user_model->get_e_mail_usuarios();
                 $subcategorias = $this->model->get_subcategorias();
                 $this->view->show_update_evento($evento, $distritos, $usuarios, $subcategorias, $_SESSION['permiso']);
             }else
@@ -85,14 +85,14 @@
             $split = explode("/", $split_subcategoria);
             $id_categoria = $split[0];
             $id_subcategoria = $split[1];;
-            $email = $_POST['email'];
+            $e_mail = $_POST['email'];
             $id_distrito = $_POST['id_distrito'];
             $dia_evento = $_POST['dia_evento'];
             $mes_evento = $_POST['mes_evento'];
             $repetir = $_POST['repetir'];
             $save= $_POST['save'];
             if(isset($save)){
-                $user = $this->model->get_user($email);
+                $user = $this->user_model->get_user($e_mail);
                 if((!empty($id_evento)) && (!empty($nombre_evento)) && (!empty($descripcion_evento)) && (!empty($dia_evento)) && (!empty($mes_evento)) && (!empty($repetir))){
                     echo '/ '.$id_evento.'/ '.$nombre_evento.'/ '.$descripcion_evento.'/ '.$id_categoria.'/ '.$id_subcategoria.'/ '.$user->id_usuario.'/ '.$id_distrito.'/ '.$dia_evento.'/ '.$mes_evento.'/ '.$repetir.'////';
                     $this->model->update_evento($id_evento, $nombre_evento, $descripcion_evento, $id_categoria, $id_subcategoria, $user->id_usuario, $id_distrito, $dia_evento, $mes_evento, $repetir);

@@ -22,12 +22,12 @@
 			<small id="id_categoria_id_subcategoria" class="form-text text-muted">Id categoria, Id subcategoria</small>	
 		</div>
 		<div class="form-group col-md-10 offset-1"> 	
-			<select name="email" class="form-control">
+			<select name="e_mail" class="form-control">
 				{foreach from=$usuarios_list item=usuarios}
-					<option>{$usuarios->email}</option>
+					<option>{$usuarios->e_mail}</option>
 				{/foreach}
 			</select>
-			<small id="email" class="form-text text-muted">Email de usuario</small>	
+			<small id="e_mail" class="form-text text-muted">Email de usuario</small>	
 		</div>
 		<div class="form-group col-md-10 offset-1"> 	
 			<select name="id_distrito" class="form-control">

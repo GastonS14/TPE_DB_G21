@@ -45,7 +45,7 @@
 
 
 
-	$r->addRoute('evento/:ID', 'GET', 'evento_controller', 'get_ediciones_evento');
+	$r->addRoute('evento/:ID', 'GET', 'evento_controller', 'get_evento');
 	
 
 	//CATEGORY

@@ -27,18 +27,6 @@
         return $sentence->fetchAll(PDO::FETCH_OBJ);
     }
 
-    public function get_usuarios(){
-        $sentence = $this->db->prepare("SELECT email FROM g21_usuario");
-        $sentence->execute();
-        return $sentence->fetchAll(PDO::FETCH_OBJ);
-    }
-
-   public function get_user($email){
-        $sentence = $this->db->prepare("SELECT * FROM g21_usuario WHERE email=?");
-        $sentence->execute(array($email));
-        return $sentence->fetch(PDO::FETCH_OBJ);
-    }
-
     public function get_subcategorias(){
         $sentence = $this->db->prepare("SELECT id_categoria, id_subcategoria FROM g21_subcategoria");
         $sentence->execute();

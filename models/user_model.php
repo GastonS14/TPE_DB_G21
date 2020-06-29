@@ -44,6 +44,12 @@
             return $sentence->fetchAll(PDO::FETCH_OBJ);
         }
 
+        public function get_e_mail_usuarios(){
+        $sentence = $this->db->prepare("SELECT e_mail FROM g21_usuario");
+        $sentence->execute();
+        return $sentence->fetchAll(PDO::FETCH_OBJ);
+    }
+
         public function update_user($e_mail,$id_permiso){
             $sentence =$this->db->prepare("UPDATE g21_usuario SET id_permiso=? WHERE e_mail=?");
             $sentence->execute(array($id_permiso, $e_mail));

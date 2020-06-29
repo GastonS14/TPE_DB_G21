@@ -147,16 +147,18 @@ CHECK (NOT EXISTS(
 --2-Todas las fechas, entre EVENTO y EVENTO_EDICION (recordar en EVENTO_EDICIO también) tienen que ser coherentes.
 --D-----------------VISTAS-----------------
 --A-Identificador de los Eventos cuya fecha de realización de su último encuentro esté en el primer trimestre de 2020.
+--NO ACTUALIZABLE->NO PRESERVED KEY
 --CREATE VIEW
 CREATE VIEW G21_ultimo_evento_pimer_trimestre_2020 AS
-SELECT id_evento
-FROM g21_evento_edicion
-WHERE fecha_edicion
+SELECT e.id_evento
+FROM g21_evento_edicion ed
+JOIN g21_evento e
+ON ed.id_evento = e.id_evento
+WHERE ed.fecha_edicion
 BETWEEN '2020-01-01'
 AND '2020-03-31'
-ORDER BY fecha_edicion DESC
-LIMIT 1
-WITH LOCAL CHECK OPTION;--No permita insert/update en la vista sin que el usuario se dé cuenta
+ORDER BY ed.fecha_edicion DESC
+LIMIT 1;
 --B-Datos completos de los distritos indicando la cantidad de eventos en cada uno
 --NO ACTUALIZABLE->COUNT(*)
 CREATE VIEW G21_cant_eventos_distrito AS

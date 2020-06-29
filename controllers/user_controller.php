@@ -88,11 +88,11 @@
                 if(!empty($id_usuario) && !empty($nombre) && !empty($apellido) && !empty($e_mail) && !empty($pass)){//trajo todos los datos
                     $user_data = $this->model->get_user($e_mail);//existe en la base?
                     if($user_data == null){//si no existe -> registrarlo
-                        $id_permiso = 1;
+                        $id_permiso = 2;
                         $this->model->add_user($id_usuario, $nombre, $apellido, $e_mail, $pass, $id_permiso);
                         $user_data = $this->model->get_user($e_mail);
                         $this->auth_helper->login($user_data);
-                        //header("Location: " . category);
+                        header("Location: " . evento);
                     }else
                         $this->view->show_login("Usted ya posee una cuenta");
                 }
@@ -104,7 +104,7 @@
                     if(!empty($user_data)){
                         if(password_verify($pass, $user_data->password)){
                             $this->auth_helper->login($user_data);
-                            header("Location: " . category);
+                            header("Location: " . evento);
                         }else
                             $this->view->show_login("Contraseña incorrecta");
                     }else
@@ -116,7 +116,7 @@
                 $id_permiso = 3;
                 $this->auth_helper->invited_login($id_permiso);
                 $this->auth_helper->check_login();
-                header("Location: " . category);
+                header("Location: " . evento);
             }
         }
     }

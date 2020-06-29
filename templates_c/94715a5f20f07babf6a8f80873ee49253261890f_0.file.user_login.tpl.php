@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 3.1.33, created on 2020-06-29 08:19:03
+/* Smarty version 3.1.33, created on 2020-06-29 14:07:55
   from 'C:\xampp\htdocs\TPE_DB_G21\templates\user_login.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '3.1.33',
-  'unifunc' => 'content_5ef987d763cd16_81032499',
+  'unifunc' => 'content_5ef9d99b1a4e25_72877873',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '94715a5f20f07babf6a8f80873ee49253261890f' => 
     array (
       0 => 'C:\\xampp\\htdocs\\TPE_DB_G21\\templates\\user_login.tpl',
-      1 => 1593411536,
+      1 => 1593432472,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_5ef987d763cd16_81032499 (Smarty_Internal_Template $_smarty_tpl) {
+function content_5ef9d99b1a4e25_72877873 (Smarty_Internal_Template $_smarty_tpl) {
 ?><!DOCTYPE html>
 <html>
 <head>
@@ -37,7 +37,7 @@ function content_5ef987d763cd16_81032499 (Smarty_Internal_Template $_smarty_tpl)
 	<div class="user_login">
 		<form action="login_verify" method="POST" class="user_login_form">
 			<div>
-				<h1 class="title_page">Pedro events</h1>
+				<h1 class="title_page">En un cumple events</h1>
 			</div>
 			<div class="form-group col-md-10 offset-1">
 				<input type="text" class="form-control" name="id_usuario" id="id_usuario" placeholder="Id usuario">
