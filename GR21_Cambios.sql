@@ -6,15 +6,41 @@ ALTER TABLE gr21_evento_edicion
 ADD CONSTRAINT ck_fecha_fin
 CHECK (fecha_fin_pub IS NULL OR fecha_inicio_pub < fecha_fin_pub);
 
+INSERT INTO gr21_evento_edicion (id_evento, nro_edicion, fecha_inicio_pub, fecha_fin_pub, presupuesto, fecha_edicion)
+VALUES (12, 1, '2020-3-1', '2020-1-9', 100000, '2020-3-6');
+
 /* inciso b: Cada categoría no debe superar las 50 subcategorías. */
-ALTER TABLE g21_subcategoria
+ALTER TABLE gr21_subcategoria
 ADD CONSTRAINT max_subcategorias
 CHECK (NOT EXISTS(
     SELECT 1
-    FROM g21_subcategoria
+    FROM gr21_subcategoria
     GROUP BY id_categoria
-    HAVING count(distinct id_subcategoria) > 50
+    HAVING count(id_subcategoria) > 50
 ));
+
+CREATE OR REPLACE FUNCTION TRFN_GR21_maximo_subcategorias() RETURNS TRIGGER AS $$
+    DECLARE
+        max_subcategorias int = 50;
+    BEGIN
+        if exists(
+            SELECT 1
+            FROM gr21_subcategoria
+            WHERE id_categoria = new.id_categoria
+            GROUP BY id_categoria
+            HAVING count(id_subcategoria) > max_subcategorias
+        ) then
+            raise exception 'Ya se alcanzó la cantidad máxima de subcategorías (%)', max_subcategorias;
+        end if;
+        return new;
+    END $$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER TR_GR21_maximo_subcategorias
+AFTER INSERT OR UPDATE OF id_categoria
+ON gr21_subcategoria
+FOR EACH ROW
+EXECUTE PROCEDURE TRFN_GR21_maximo_subcategorias();
 
 /* inciso c: La suma de los aportes que recibe una edición de un evento de sus patrocinantes
    no puede superar el presupuesto establecido para la misma. */
@@ -120,17 +146,29 @@ $$
             WHERE pr.id_distrito != e.id_distrito
                 and pr.id_patrocinate = new.id_patrocinate and e.id_evento = new.id_evento and ed.nro_edicion = new.nro_edicion
         ) then
-            raise exception 'El distrito del evento no coincide con el del patrocinante';
+            raise exception 'El distrito del evento no coincide con el del patrocinantexx';
         end if;
         return new;
     end;
 $$
 language 'plpgsql';
 
+drop trigger TR_GR21_evento_ck_distrito_patrocinios on gr21_patrocinios;
+
 create trigger TR_GR21_evento_ck_distrito_patrocinios
 after insert or update of id_patrocinate, id_evento, nro_edicion
 on gr21_patrocinios
 for each row execute procedure FN_GR21_ck_distrito_patrocinios();
+
+select * from gr21_patrocinios; select * from gr21_evento_edicion; select * from gr21_evento where id_evento = 9;
+
+insert into gr21_evento
+    (id_evento, nombre_evento, descripcion_evento, id_categoria, id_subcategoria, id_usuario, id_distrito, dia_evento, mes_evento, repetir)
+values (16, 'd', 'd', 1, 1, 1, 1, 4, 5, true);
+
+insert into gr21_patrocinios (id_patrocinate, id_evento, nro_edicion, aporte) values (1, 15, 1, 9);
+
+update gr21_patrocinios set id_evento = 16 where id_patrocinate = 1 and id_evento = 11;
 
 --C) SERVICIOS
 
