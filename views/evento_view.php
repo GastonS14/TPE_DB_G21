@@ -45,6 +45,34 @@ require_once('libs/Smarty.class.php');
             $this->smarty->display('./templates/update_evento.tpl');
         }
 
+        public function show_top_users($top_users, $user_permiso){
+            $this->smarty->assign('top_users_list', $top_users);
+            $this->smarty->assign('basehref', user);
+            $this->smarty->assign('user_permiso', $user_permiso);
+            $this->smarty->display('./templates/top_users.tpl');
+        }
+
+        public function show_last_event($last_event, $user_permiso){
+            $this->smarty->assign('last_event_list', $last_event);
+            $this->smarty->assign('basehref', user);
+            $this->smarty->assign('user_permiso', $user_permiso);
+            $this->smarty->display('./templates/last_event.tpl');
+        }
+
+        public function show_distrito_count($distrito_count, $user_permiso){
+            $this->smarty->assign('distrito_count_list', $distrito_count);
+            $this->smarty->assign('basehref', user);
+            $this->smarty->assign('user_permiso', $user_permiso);
+            $this->smarty->display('./templates/distrito_count.tpl');
+        }
+
+        public function show_categories_subcategories_events($categories_subcategories_events, $user_permiso){
+            $this->smarty->assign('categories_subcategories_events_list', $categories_subcategories_events);
+            $this->smarty->assign('basehref', user);
+            $this->smarty->assign('user_permiso', $user_permiso);
+            $this->smarty->display('./templates/categories_subcategories_events.tpl');
+        }
+
         //------------------------------------------------------
 
         public function show_game($game, $user_permiso){

@@ -1,29 +1,74 @@
 <?php
-/* Smarty version 3.1.33, created on 2020-06-29 16:20:36
-  from 'C:\xampp\htdocs\TPE_DB_G21\templates\evento.tpl' */
+/* Smarty version 3.1.33, created on 2020-06-29 16:33:41
+  from 'C:\xampp\htdocs\TPE_DB_G21\templates\top_users.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '3.1.33',
-  'unifunc' => 'content_5ef9f8b464c230_07694120',
+  'unifunc' => 'content_5ef9fbc5b84770_87307656',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
-    '384baf110599bb74fc141dd750650e2b2ad6cdaf' => 
+    '4d600a395ccfb12b79bb5080a97062374d8960b3' => 
     array (
-      0 => 'C:\\xampp\\htdocs\\TPE_DB_G21\\templates\\evento.tpl',
-      1 => 1593440433,
+      0 => 'C:\\xampp\\htdocs\\TPE_DB_G21\\templates\\top_users.tpl',
+      1 => 1593441219,
       2 => 'file',
     ),
   ),
   'includes' => 
   array (
-    'file:header.tpl' => 1,
-    'file:footer.tpl' => 1,
+    'file:header.tpl' => 2,
+    'file:footer.tpl' => 2,
   ),
 ),false)) {
-function content_5ef9f8b464c230_07694120 (Smarty_Internal_Template $_smarty_tpl) {
+function content_5ef9fbc5b84770_87307656 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_subTemplateRender("file:header.tpl", $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, false);
+?>
+    <div class="weight_form_small">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Id usuario</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>e_mail</th>
+                    <th>Cantidad de eventos</th>
+                </tr> 
+            </thead>
+            <tbody>
+                <?php
+$_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['top_users_list']->value, 'top_users');
+if ($_from !== null) {
+foreach ($_from as $_smarty_tpl->tpl_vars['top_users']->value) {
+?>
+                    <tr>
+                        <td><?php echo $_smarty_tpl->tpl_vars['top_users']->value->id_usuario;?>
+</td>
+                        <td><?php echo $_smarty_tpl->tpl_vars['top_users']->value->nombre;?>
+</td>
+                        <td><?php echo $_smarty_tpl->tpl_vars['top_users']->value->apellido;?>
+</td>
+                        <td><?php echo $_smarty_tpl->tpl_vars['top_users']->value->e_mail;?>
+</td>
+                        <td><?php echo $_smarty_tpl->tpl_vars['top_users']->value->cant_eventos_usuario;?>
+</td>
+                    </tr> 
+                <?php
+}
+}
+$_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?>
+                    <tr>
+                        <td colspan="4"></td>
+                        <td><a href='evento'>Volver a eventos</a></td>
+                    </tr>
+            </tbody>
+        </table>
+    </div>
+<?php $_smarty_tpl->_subTemplateRender("file:footer.tpl", $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, false);
+?>
+
+<?php $_smarty_tpl->_subTemplateRender("file:header.tpl", $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, true);
 ?>
     <div class="separation">
     </div>
@@ -44,6 +89,7 @@ $_smarty_tpl->_subTemplateRender("file:header.tpl", $_smarty_tpl->cache_id, $_sm
                     <?php if (($_smarty_tpl->tpl_vars['user_permiso']->value == 1)) {?>
                     <th></th>
                     <th>Acción</th>
+                    <th></th>
                     <?php }?>
                 </tr> 
             </thead>
@@ -51,9 +97,9 @@ $_smarty_tpl->_subTemplateRender("file:header.tpl", $_smarty_tpl->cache_id, $_sm
                 <tr>
                     <td><a href='get_top_users'>Usuarios con mas eventos</a></td>
                     <td></td>
-                    <td><a href='get_last_event_first_tri'>Id_Events(fecha_edicion=primer tri 2020)</a></td>
-                    <td><a href='get_count_event_distrito'>Distritos + count(events) por distrito</a></td>
-                    <td><a href='get_categories_subcategories_events'>Categorías con eventos en todas sus subcategorías.</a></td>
+                    <td><a href='get_top_users'>Id_Events(fecha_edicion=primer tri 2020)</a></td>
+                    <td><a href='get_top_users'>Distritos + count(events) por distrito</a></td>
+                    <td><a href='get_top_users'>Categorías con eventos en todas sus subcategorías.</a></td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -108,6 +154,6 @@ $_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?>
             </tbody>
         </table>
     </div>    
-<?php $_smarty_tpl->_subTemplateRender("file:footer.tpl", $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, false);
+<?php $_smarty_tpl->_subTemplateRender("file:footer.tpl", $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, true);
 }
 }

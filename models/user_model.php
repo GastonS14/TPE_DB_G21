@@ -56,6 +56,10 @@
             return $sentence->fetchAll(PDO::FETCH_OBJ);
         }
 
+         
+
+        
+
         /*
         //optimization
         public function search_user($email){

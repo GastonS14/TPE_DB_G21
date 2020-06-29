@@ -57,6 +57,30 @@
         //return $sentence->fetchAll(PDO::FETCH_OBJ);
     }
 
+    public function get_top_users(){
+        $sentence = $this->db->prepare("SELECT * FROM G21_top_usuarios_events;");
+        $sentence->execute();
+        return $sentence->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    public function get_last_event_first_tri(){
+        $sentence = $this->db->prepare("SELECT * FROM G21_ultimo_evento_primer_trimestre_2020;");
+        $sentence->execute();
+        return $sentence->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    public function get_count_event_distrito(){
+        $sentence = $this->db->prepare("SELECT * FROM G21_cant_eventos_distrito;");
+        $sentence->execute();
+        return $sentence->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    public function get_categories_subcategories_events(){
+        $sentence = $this->db->prepare("SELECT * FROM G21_cat_with_subcat_with_events;");
+        $sentence->execute();
+        return $sentence->fetchAll(PDO::FETCH_OBJ);
+    }
+
     //------------------------------------------------------------
 
     public function get_sorted_games($categoria){

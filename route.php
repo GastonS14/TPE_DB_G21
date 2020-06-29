@@ -28,6 +28,7 @@
 	$r->addRoute('update_user/:ID','GET','user_controller','update_user');
 	$r->addRoute('save_update_user/:ID', 'POST', 'user_controller', 'save_update_user');
 
+
 	//LOGIN
 	$r->addRoute('login', 'GET', 'user_controller', 'login');
 	$r->addRoute('logout', 'GET', 'user_controller', 'logout');
@@ -40,6 +41,11 @@
 	$r->addRoute('save_evento','POST','evento_controller','save_evento');
 	$r->addRoute('update_evento/:ID','GET','evento_controller','update_evento');
 	$r->addRoute('save_update_evento/:ID', 'POST', 'evento_controller', 'save_update_evento');
+
+	$r->addRoute('get_top_users', 'GET', 'evento_controller', 'get_top_users');
+	$r->addRoute('get_last_event_first_tri', 'GET', 'evento_controller', 'get_last_event_first_tri');
+	$r->addRoute('get_count_event_distrito', 'GET', 'evento_controller', 'get_count_event_distrito');
+	$r->addRoute('get_categories_subcategories_events', 'GET', 'evento_controller', 'get_categories_subcategories_events');
 
 
 

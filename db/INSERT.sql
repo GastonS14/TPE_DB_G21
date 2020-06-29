@@ -30,3 +30,9 @@ VALUES
        (1, 2, 'subcat2'),
        (1, 3, 'subcat3'),
        (2, 1, 'subcat1');
+
+
+
+INSERT INTO g21_evento_edicion(id_evento, nro_edicion, fecha_inicio_pub, fecha_fin_pub, presupuesto, fecha_edicion)
+VALUES
+       (1, 1, '2018-06-04', null, 7000, '2020-01-03');

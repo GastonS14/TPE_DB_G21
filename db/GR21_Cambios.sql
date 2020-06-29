@@ -149,7 +149,7 @@ CHECK (NOT EXISTS(
 --A-Identificador de los Eventos cuya fecha de realización de su último encuentro esté en el primer trimestre de 2020.
 --NO ACTUALIZABLE->NO PRESERVED KEY
 --CREATE VIEW
-CREATE VIEW G21_ultimo_evento_pimer_trimestre_2020 AS
+CREATE VIEW G21_ultimo_evento_primer_trimestre_2020 AS
 SELECT e.id_evento
 FROM g21_evento_edicion ed
 JOIN g21_evento e
@@ -170,7 +170,7 @@ GROUP BY d.id_distrito
 ORDER BY id_distrito;
 --C-Datos Categorías que poseen eventos en todas sus subcategorías.
 --ACTUALIZABLE->PRESERVED KEY
-CREATE VIEW G21_cat_wit_subcat_without_events AS
+CREATE VIEW G21_cat_with_subcat_with_events AS
 SELECT c.id_categoria, c.nombre_categoria
 FROM g21_categoria c
 JOIN g21_subcategoria s
@@ -184,17 +184,17 @@ GROUP BY c.id_categoria
 ORDER BY c.id_categoria;
 --D-----------------SITIO-----------------
 --1-Listado del TOP 10 de usuarios que participa en más eventos. getTopUsers
---view top 10 users -> actualizable
+--view top 10 users -> No actualizable
 CREATE VIEW G21_top_usuarios_events AS
-SELECT u.id_usuario, u.nombre, u.apellido, u.e_mail, u.password, count(*) AS cant_eventos_usuario
+SELECT u.id_usuario, u.nombre, u.apellido, u.e_mail, count(*) AS cant_eventos_usuario
 FROM g21_usuario u
 JOIN g21_evento e
 ON u.id_usuario = e.id_usuario
 GROUP BY u.id_usuario
-ORDER BY 6 DESC, 1
+ORDER BY 5 DESC, 1
 LIMIT 10;
 --getView
-SELECT * FROM G21_top_usuarios_events;--vista de top users
+--SELECT * FROM G21_top_usuarios_events;--vista de top users
 --2-Listado de usuarios de acuerdo a un patrón de búsqueda que contenga todos los datos del usuario
 -- junto con la cantidad de participaciones que tenga. getUserWithFilter() -> userDate+count(participation)
 

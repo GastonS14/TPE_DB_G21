@@ -27,9 +27,6 @@
 				     	<li class="nav-item rojo">
 				        	<a class="nav-link" href="category">Categorías</a>
 				     	</li>
-				     	<li class="nav-item rojo">
-				        	<a class="nav-link" href="especiales">Especiales</a>
-				     	</li>
 				     	{if ($user_permiso==1)}
 				     	<li class="nav-item active">
 				        	<a class="nav-link" href="user">Usuario</a>

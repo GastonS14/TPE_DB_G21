@@ -62,6 +62,30 @@
             header("Location: " . evento);
         }
 
+        public function get_top_users(){
+            $this->auth_helper->check_login();
+            $top_users = $this->model->get_top_users();
+            $this->view->show_top_users($top_users, $_SESSION['permiso']);
+        }
+
+        public function get_last_event_first_tri(){
+            $this->auth_helper->check_login();
+            $last_event = $this->model->get_last_event_first_tri();
+            $this->view->show_last_event($last_event, $_SESSION['permiso']);
+        }
+
+        public function get_count_event_distrito(){
+            $this->auth_helper->check_login();
+            $distrito_count = $this->model->get_count_event_distrito();
+            $this->view->show_distrito_count($distrito_count, $_SESSION['permiso']);
+        }
+
+        public function get_categories_subcategories_events(){
+            $this->auth_helper->check_login();
+            $categories_subcategories_events = $this->model->get_categories_subcategories_events();
+            $this->view->show_categories_subcategories_events($categories_subcategories_events, $_SESSION['permiso']);
+        }
+
         public function update_evento($params=null){
             $this->auth_helper->check_login();
             if($this->auth_helper->get_logged_id_permiso()==1 || $this->auth_helper->get_logged_id_permiso()==2){
