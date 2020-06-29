@@ -3,10 +3,10 @@
     </div>
 	<div class="weight_form_small">
 		{foreach from=$user_detail item=user}
-		<form action="save_update_user/{$user->email}" method="POST">
+		<form action="save_update_user/{$user->e_mail}" method="POST">
 			<div class="form-group col-md-10 offset-1">
-				<input type="text" name="email" class="form-control" id="email" placeholder="email" value="{$user->email}">
-				<small id="email" class="form-text text-muted">Email</small>
+				<input type="text" name="e_mail" class="form-control" id="e_mail" placeholder="e_mail" value="{$user->e_mail}">
+				<small id="e_mail" class="form-text text-muted">Email</small>
 			</div>
 			<div class="form-group col-md-10 offset-1"> 	
 				<select name="permiso" class="form-control">

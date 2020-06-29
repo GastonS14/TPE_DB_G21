@@ -1,0 +1,39 @@
+<?php
+
+class Conexion{
+
+	private static $conexion;
+
+	public static function abrirConexion(){
+
+		if(!isset(self::$conexion)){
+
+			try{
+				include_once 'config.php';
+				self:: $conexion = new PDO('pgsql:host='.NOMBRE_SERVIDOR.';dbname='.DB_NAME, NOMBRE_USUARIO, PASSWORD);
+				self:: $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				self:: $conexion->exec('SET CHARACTER SET utf8');
+			}
+			catch(PDOException $ex){
+				print "ERROR". $ex->getMessage(). "<br>";
+			}	
+		}
+	}
+
+	public static function obtenerConexion(){
+
+		if(isset(self::$conexion))
+			echo "Conexion establecida";
+		else
+			echo "No se pudo conectar";
+		//return self::$conexion;
+	}
+
+	//$con = new Conexion();
+
+	Conexion::abrirConexion();
+
+	Conexion::obtenerConexion();
+
+
+}

@@ -4,18 +4,19 @@
 
         private $db;
         function __construct(){
-            $this->db = new PDO('mysql:host=localhost;'.'dbname=local;charset=utf8', 'root', '');
+            //$this->db = new PDO('mysql:host=localhost;'.'dbname=local;charset=utf8', 'root', '');
+            $this->db = new PDO('pgsql:host=localhost;'.'dbname=postgres;port=5432 user=postgres password=petit1415');
         }
 
-        public function get_user($email){
-            $sentence = $this->db->prepare("SELECT * FROM g21_usuario WHERE email=?");
-            $sentence->execute(array($email));
+        public function get_user($e_mail){
+            $sentence = $this->db->prepare("SELECT * FROM g21_usuario WHERE e_mail=?");
+            $sentence->execute(array($e_mail));
             return $sentence->fetch(PDO::FETCH_OBJ);
         }
 
-        public function get_login_user($email){
-            $sentence = $this->db->prepare("SELECT * FROM g21_usuario WHERE email=?");
-            $sentence->execute(array($email));
+        public function get_login_user($e_mail){
+            $sentence = $this->db->prepare("SELECT * FROM g21_usuario WHERE e_mail=?");
+            $sentence->execute(array($e_mail));
             return $sentence->fetchAll(PDO::FETCH_OBJ);
         }
 
@@ -31,10 +32,10 @@
             return $sentence->fetchAll(PDO::FETCH_OBJ);
         }
 
-        public function add_user($id_usuario, $nombre, $apellido, $email, $password, $id_permiso){
+        public function add_user($id_usuario, $nombre, $apellido, $e_mail, $password, $id_permiso){
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $sentence= $this->db->prepare("INSERT INTO g21_usuario (id_usuario, nombre, apellido, email, password, id_permiso) VALUES (?,?,?,?,?,?)");
-            $sentence->execute(array($id_usuario, $nombre, $apellido, $email, $hash, $id_permiso));
+            $sentence= $this->db->prepare("INSERT INTO g21_usuario (id_usuario, nombre, apellido, e_mail, password, id_permiso) VALUES (?,?,?,?,?,?)");
+            $sentence->execute(array($id_usuario, $nombre, $apellido, $e_mail, $hash, $id_permiso));
         }
 
         public function get_users(){
@@ -43,9 +44,9 @@
             return $sentence->fetchAll(PDO::FETCH_OBJ);
         }
 
-        public function update_user($email,$id_permiso){
-            $sentence =$this->db->prepare("UPDATE g21_usuario SET id_permiso=? WHERE email=?");
-            $sentence->execute(array($id_permiso, $email));
+        public function update_user($e_mail,$id_permiso){
+            $sentence =$this->db->prepare("UPDATE g21_usuario SET id_permiso=? WHERE e_mail=?");
+            $sentence->execute(array($id_permiso, $e_mail));
             return $sentence->fetchAll(PDO::FETCH_OBJ);
         }
 

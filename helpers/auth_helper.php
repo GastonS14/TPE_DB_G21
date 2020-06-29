@@ -8,7 +8,7 @@
 		//DONE
 		public function login($user){
 			session_start();
-			$_SESSION['user'] = $user->email;
+			$_SESSION['user'] = $user->e_mail;
 			$_SESSION['permiso'] = $user->id_permiso;
 		}
 

@@ -5,7 +5,8 @@
     private $db;
 
     function __construct(){
-        $this->db = new PDO('mysql:host=localhost;'.'dbname=local;charset=utf8', 'root', '');
+        //$this->db = new PDO('mysql:host=localhost;'.'dbname=local;charset=utf8', 'root', '');
+        $this->db = new PDO('pgsql:host=localhost;'.'dbname=postgres;port=5432 user=postgres password=petit1415');
     }
 
     public function get_eventos(){

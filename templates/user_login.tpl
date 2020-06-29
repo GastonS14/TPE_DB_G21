@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-	<!--<base href='http://localhost/TPE_DB_G21/eventos'>-->
+	<base href='http://localhost/TPE_DB_G21/'>
 	<link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">	
 	<link rel="stylesheet" type="text/css" href="./css/estilo.css">
 	<title>Eventos</title>
@@ -29,8 +29,8 @@
 				<small id="emailHelp" class="form-text text-muted">Apellido</small>
 			</div>
 			<div class="form-group col-md-10 offset-1">
-				<input type="text" class="form-control" name="email" id="email" placeholder="Email">
-				<small id="emailHelp" class="form-text text-muted">No olvide colocar el @</small>
+				<input type="text" class="form-control" name="e_mail" id="e_mail" placeholder="Email">
+				<small id="e_mail" class="form-text text-muted">No olvide colocar el @</small>
 			</div>
 			<div class="form-group col-md-10 offset-1">
 				<input type="password" class="form-control" id="password" name="password" placeholder="Password">

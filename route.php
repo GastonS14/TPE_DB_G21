@@ -4,7 +4,9 @@
 	require_once ('controllers/user_controller.php');
 	require_once ('router.php');
 
-	define('BASE_URL', 'http://'.$_SERVER["SERVER_NAME"].':'.$_SERVER["SERVER_PORT"].dirname($_SERVER["PHP_SELF"]).'/');
+	//define('BASE_URL', 'http://'.$_SERVER["SERVER_NAME"].':'.$_SERVER["SERVER_PORT"].dirname($_SERVER["PHP_SELF"]).'/');
+	//echo BASE_URL;//PROD
+	define('BASE_URL', 'http://'.$_SERVER["SERVER_NAME"].dirname($_SERVER["PHP_SELF"]).'/');//DEV
 	define('evento', BASE_URL . 'evento');
 	define('ediciones_evento', BASE_URL . 'ediciones_evento');
 	define('category', BASE_URL . 'category');
@@ -15,7 +17,7 @@
 	define('update_category', BASE_URL . 'update_category');
 	define('user', BASE_URL . 'user');
 	$r = new Router();
-	//$r->setDefaultRoute('user_controller', 'login');
+	$r->setDefaultRoute('user_controller', 'login');
 
 	$action = $_GET["action"];
 	$method = $_SERVER["REQUEST_METHOD"];
@@ -44,7 +46,6 @@
 
 
 	$r->addRoute('evento/:ID', 'GET', 'evento_controller', 'get_ediciones_evento');
-	$r->addRoute('sorted_event/:ID','GET','evento_controller','sorted_event');
 	
 
 	//CATEGORY

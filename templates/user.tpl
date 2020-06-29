@@ -16,8 +16,8 @@
             <tbody>
                 {foreach from=$user_list item=user}
                     <tr>
-                        <td>{$user->email}</td>
-                        <td><a href='delete_user/{$user->email}'>Borrar</a></td>
+                        <td>{$user->e_mail}</td>
+                        <td><a href='delete_user/{$user->e_mail}'>Borrar</a></td>
                         <td>{if {$user->id_permiso} == 1}
                                 Administrador
                             {elseif {$user->id_permiso} == 2}
@@ -26,7 +26,7 @@
                                 Invitado
                             {/if}
                         </td>
-                        <td><a href='update_user/{$user->email}'>Editar</a></td>
+                        <td><a href='update_user/{$user->e_mail}'>Editar</a></td>
                     </tr> 
                 {/foreach}   
             </tbody>
