@@ -1,15 +1,17 @@
--- B) ELABORACIÓN DE RESTRICCIONES
+------------------------------------------ B) ELABORACIÓN DE RESTRICCIONES-------------------------------------------------------------------
 
-/* inciso a: Se debe consistir que la fecha de inicio de la publicación de la edición sea
-   anterior a la fecha de fin de la publicación del mismo si esta última no es nula. */
+/* --------------- inciso a: Se debe consistir que la fecha de inicio de la publicación de la edición sea -----------------
+   --------------- anterior a la fecha de fin de la publicación del mismo si esta última no es nula. ---------------------- */
 ALTER TABLE gr21_evento_edicion
 ADD CONSTRAINT ck_fecha_fin
 CHECK (fecha_fin_pub IS NULL OR fecha_inicio_pub < fecha_fin_pub);
 
-INSERT INTO gr21_evento_edicion (id_evento, nro_edicion, fecha_inicio_pub, fecha_fin_pub, presupuesto, fecha_edicion)
-VALUES (12, 1, '2020-3-1', '2020-1-9', 100000, '2020-3-6');
+/* INSERT INTO gr21_evento_edicion (id_evento, nro_edicion, fecha_inicio_pub, fecha_fin_pub, presupuesto, fecha_edicion)
+VALUES (12, 1, '2020-3-1', '2020-1-9', 100000, '2020-3-6'); */
 
-/* inciso b: Cada categoría no debe superar las 50 subcategorías. */
+-----------------------------------inciso b: Cada categoría no debe superar las 50 subcategorías. --------------------------------------------
+
+/*
 ALTER TABLE gr21_subcategoria
 ADD CONSTRAINT max_subcategorias
 CHECK (NOT EXISTS(
@@ -17,7 +19,7 @@ CHECK (NOT EXISTS(
     FROM gr21_subcategoria
     GROUP BY id_categoria
     HAVING count(id_subcategoria) > 50
-));
+)); */
 
 CREATE OR REPLACE FUNCTION TRFN_GR21_maximo_subcategorias() RETURNS TRIGGER AS $$
     DECLARE
@@ -28,7 +30,7 @@ CREATE OR REPLACE FUNCTION TRFN_GR21_maximo_subcategorias() RETURNS TRIGGER AS $
             FROM gr21_subcategoria
             WHERE id_categoria = new.id_categoria
             GROUP BY id_categoria
-            HAVING count(id_subcategoria) > max_subcategorias
+            HAVING count(id_subcategoria) >= max_subcategorias
         ) then
             raise exception 'Ya se alcanzó la cantidad máxima de subcategorías (%)', max_subcategorias;
         end if;
@@ -37,25 +39,110 @@ CREATE OR REPLACE FUNCTION TRFN_GR21_maximo_subcategorias() RETURNS TRIGGER AS $
 LANGUAGE 'plpgsql';
 
 CREATE TRIGGER TR_GR21_maximo_subcategorias
-AFTER INSERT OR UPDATE OF id_categoria
+BEFORE INSERT OR UPDATE OF id_categoria
 ON gr21_subcategoria
 FOR EACH ROW
 EXECUTE PROCEDURE TRFN_GR21_maximo_subcategorias();
 
-/* inciso c: La suma de los aportes que recibe una edición de un evento de sus patrocinantes
-   no puede superar el presupuesto establecido para la misma. */
+/* INSERT INTO gr21_subcategoria (id_categoria, id_subcategoria, nombre_subcategoria)
+VALUES (1, 51, 'Subcategoria50'); (Suponiendo que existen 50 subcategorias con id_categoria = 1). */
+
+/* --------------- inciso c: La suma de los aportes que recibe una edición de un evento de sus patrocinantes -----------------
+   --------------- no puede superar el presupuesto establecido para la misma.  ----------------------------------------------- */
+
+/*
 CREATE ASSERTION ASS_max_presupuesto
 CHECK (NOT EXISTS(
     SELECT 1
-    FROM g21_evento_edicion ed
-        JOIN g21_patrocinios p
-        ON (ed.id_evento = p.id_evento AND ed.nro_edicion = p.nro_edicion)
+    FROM gr21_evento_edicion ed
+    JOIN g21_patrocinios p
+    ON (ed.id_evento = p.id_evento AND ed.nro_edicion = p.nro_edicion)
     GROUP BY ed.id_evento, ed.nro_edicion, ed.presupuesto
-    HAVING sum(p.aporte) < ed.presupuesto
-));
+    HAVING sum(p.aporte) > ed.presupuesto
+)); */
 
-/* inciso d: Los patrocinantes solo pueden patrocinar ediciones de eventos de su mismo distrito. */
-CREATE ASSERTION ASS_patrocinantes_mismo_distrito_evento
+--TRIGGERS & FUNCTIONS:
+
+--EVENTO EDICION
+
+CREATE OR REPLACE FUNCTION TRFN_GR21_presupuesto_mayor_aporte_ed() RETURNS TRIGGER AS $$
+    DECLARE
+        suma_aporte int;
+    BEGIN
+        SELECT sum(aporte) INTO suma_aporte
+        FROM gr21_patrocinios p
+        WHERE p.id_evento = OLD.id_evento
+        AND p.nro_edicion = OLD.nro_edicion;
+        IF (suma_aporte > NEW.presupuesto) THEN
+            RAISE EXCEPTION 'Los aportes (%) son mayores al presupuesto: %', suma_aporte, NEW.presupuesto;
+        END IF;
+        RETURN NEW;
+    END $$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER TR_GR21_presupuesto_mayor_aporte
+BEFORE UPDATE OF presupuesto
+ON gr21_evento_edicion
+FOR EACH ROW
+EXECUTE PROCEDURE TRFN_GR21_presupuesto_mayor_aporte_ed();
+
+--PATROCINIOS
+
+CREATE OR REPLACE FUNCTION TRFN_GR21_presupuesto_mayor_aporte_patrocinio() RETURNS TRIGGER AS $$
+    DECLARE
+        suma_aporte numeric(8,2);
+        presupuesto numeric(8,2);
+        dif_aporte numeric(8,2);
+    BEGIN
+        IF TG_OP = 'INSERT' THEN
+            SELECT sum(aporte) INTO suma_aporte
+            FROM gr21_patrocinios p
+            WHERE p.id_evento = NEW.id_evento
+            AND p.nro_edicion = NEW.nro_edicion
+            GROUP BY p.id_evento, p.nro_edicion;
+            SELECT ed.presupuesto INTO presupuesto
+            FROM gr21_evento_edicion ed
+            WHERE ed.id_evento = NEW.id_evento
+            AND ed.nro_edicion = NEW.nro_edicion;
+            IF (presupuesto-suma_aporte-NEW.aporte < 0) THEN
+                RAISE EXCEPTION 'El aporte supera al presupuesto(pres: %, suma_aporte: %, aporte: %)', presupuesto, suma_aporte, NEW.aporte;
+            END IF;
+        END IF;
+        IF TG_OP = 'UPDATE' THEN
+            --aporte
+            SELECT sum(aporte) INTO suma_aporte
+            FROM gr21_patrocinios p
+            WHERE p.id_evento = NEW.id_evento AND p.nro_edicion = NEW.nro_edicion
+            GROUP BY p.id_evento, p.nro_edicion;
+
+            SELECT ed.presupuesto INTO presupuesto
+            FROM gr21_evento_edicion ed
+            WHERE ed.id_evento = NEW.id_evento
+            AND ed.nro_edicion = NEW.nro_edicion;
+
+            dif_aporte = NEW.aporte - OLD.aporte;
+
+            IF (presupuesto-suma_aporte-dif_aporte < 0) THEN
+                RAISE EXCEPTION 'El aporte supera al presupuesto(pres: %, suma_aporte: %, diferencia nuevo aporte: %)', presupuesto, suma_aporte, dif_aporte;
+            END IF;
+        END IF;
+        RETURN NEW;
+    END $$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER TR_GR21_presupuesto_mayor_aporte_patrocinio
+BEFORE INSERT OR UPDATE OF id_evento, nro_edicion, aporte
+ON gr21_patrocinios
+FOR EACH ROW
+EXECUTE PROCEDURE TRFN_GR21_presupuesto_mayor_aporte_patrocinio();
+
+/* update gr21_evento_edicion
+set presupuesto = 3000
+where id_evento = 1 and nro_edicion = 1;  (SUPONIENDO LO ACLARADO EN EL INFORME). */
+
+/* --------------- inciso d: Los patrocinantes solo pueden patrocinar ediciones de eventos de su mismo distrito. ----------------- */
+
+/* CREATE ASSERTION ASS_patrocinantes_mismo_distrito_evento
 CHECK (NOT EXISTS(
     SELECT 1
     FROM gr21_patrocinante pr
@@ -63,19 +150,10 @@ CHECK (NOT EXISTS(
         JOIN gr21_evento_edicion ed ON (p.id_evento = ed.id_evento AND p.nro_edicion = ed.nro_edicion)
         JOIN gr21_evento e ON (ed.id_evento = e.id_evento)
     WHERE pr.id_distrito != e.id_distrito
-));
-
-/* Tipo de RI: Global
-   Ámbito: Más de una tabla */
-
-/* Matriz de ayuda (TABLA: evento):
-    - INSERT: No.
-    - UPDATE: Sí. (id_distrito)
-    - DELETE: No. */
+)); */
 
 create or replace function FN_GR21_ck_distrito_evento() returns trigger as
 $$
-    declare
     begin
         if exists (
             SELECT 1
@@ -97,14 +175,8 @@ after update of id_distrito
 on gr21_evento
 for each row execute procedure FN_GR21_ck_distrito_evento();
 
-/* Matriz de ayuda (TABLA: patrocinante):
-    - INSERT: No.
-    - UPDATE: Sí. (id_distrito)
-    - DELETE: No. */
-
 create or replace function FN_GR21_ck_distrito_patrocinante() returns trigger as
 $$
-    declare
     begin
         if exists (
             SELECT 1
@@ -126,13 +198,6 @@ after update of id_distrito
 on gr21_patrocinante
 for each row execute procedure FN_GR21_ck_distrito_patrocinante();
 
-select * from gr21_patrocinante; update gr21_patrocinante set id_distrito = 2 where id_patrocinate = 1;
-
-/* Matriz de ayuda (TABLA: patrocinios):
-    - INSERT: Sí.
-    - UPDATE: Sí. (id_patrocinate, id_evento, nro_edicion)
-    - DELETE: No. */
-
 create or replace function FN_GR21_ck_distrito_patrocinios() returns trigger as
 $$
     declare
@@ -146,31 +211,22 @@ $$
             WHERE pr.id_distrito != e.id_distrito
                 and pr.id_patrocinate = new.id_patrocinate and e.id_evento = new.id_evento and ed.nro_edicion = new.nro_edicion
         ) then
-            raise exception 'El distrito del evento no coincide con el del patrocinantexx';
+            raise exception 'El distrito del evento no coincide con el del patrocinante';
         end if;
         return new;
     end;
 $$
 language 'plpgsql';
 
-drop trigger TR_GR21_evento_ck_distrito_patrocinios on gr21_patrocinios;
-
 create trigger TR_GR21_evento_ck_distrito_patrocinios
 after insert or update of id_patrocinate, id_evento, nro_edicion
 on gr21_patrocinios
 for each row execute procedure FN_GR21_ck_distrito_patrocinios();
 
-select * from gr21_patrocinios; select * from gr21_evento_edicion; select * from gr21_evento where id_evento = 9;
+/* insert into gr21_patrocinios (id_patrocinate, id_evento, nro_edicion, aporte) values (1, 9, 2, 3)
+(Suponiendo que el evento con id_evento = 1 tenga id_distrito = 2). */
 
-insert into gr21_evento
-    (id_evento, nombre_evento, descripcion_evento, id_categoria, id_subcategoria, id_usuario, id_distrito, dia_evento, mes_evento, repetir)
-values (16, 'd', 'd', 1, 1, 1, 1, 4, 5, true);
-
-insert into gr21_patrocinios (id_patrocinate, id_evento, nro_edicion, aporte) values (1, 15, 1, 9);
-
-update gr21_patrocinios set id_evento = 16 where id_patrocinate = 1 and id_evento = 11;
-
---C) SERVICIOS
+--------------------------------------------------------  C) SERVICIOS ------------------------------------------------------------------------
 
 /* inciso a: Cuando se crea un evento debe crear las ediciones de ese evento, colocando como
    fecha inicial el 1 del mes en el cual se creó el evento y como presupuesto, el mismo del
@@ -313,52 +369,37 @@ add constraint check_fecha_inicio_pub
 check (extract(day from fecha_inicio_pub) = 1);
 
 
---D-----------------VISTAS-----------------
---A-Identificador de los Eventos cuya fecha de realización de su último encuentro esté en el primer trimestre de 2020.
---CREATE VIEW
+------------------------------------------------------- D) VISTAS --------------------------------------------------------------------
 
--- ->to check requirements
-/*CREATE VIEW G21_ultimo_evento_primer_trimestre AS
-SELECT * FROM g21_evento
-WHERE
-WITH LOCAL CHECK OPTION;*/
+------1) Identificador de los Eventos cuya fecha de realización de su último encuentro esté en el primer trimestre de 2020.
+CREATE VIEW GR21_ultimo_evento_primer_trimestre_2020 AS
+SELECT e.id_evento
+FROM gr21_evento_edicion ed JOIN gr21_evento e ON ed.id_evento = e.id_evento
+WHERE ed.fecha_edicion BETWEEN '2020-01-01' AND '2020-03-31'
+ORDER BY ed.fecha_edicion DESC
+LIMIT 1;
 
---B-Datos completos de los distritos indicando la cantidad de eventos en cada uno
---NO ACTUALIZABLE->COUNT(*)
-CREATE VIEW G21_cant_eventos_distrito AS
+------2) Datos completos de los distritos indicando la cantidad de eventos en cada uno
+CREATE VIEW GR21_cant_eventos_distrito AS
 SELECT d.id_distrito, d.nombre_pais, d.nombre_provincia, d.nombre_distrito, count(*) as Cantidad_eventos
-FROM g21_distrito d
-JOIN g21_evento e
-ON (d.id_distrito = e.id_distrito)
+FROM gr21_distrito d JOIN gr21_evento e ON (d.id_distrito = e.id_distrito)
 GROUP BY d.id_distrito
 ORDER BY id_distrito;
---C-Datos Categorías que poseen eventos en todas sus subcategorías.
---ACTUALIZABLE->PRESERVED KEY
-CREATE VIEW G21_cat_wit_subcat_without_events AS
+
+-------3) Datos Categorías que poseen eventos en todas sus subcategorías.
+CREATE VIEW GR21_categorias_con_eventos_subcategorias AS
 SELECT c.id_categoria, c.nombre_categoria
-FROM g21_categoria c
-JOIN g21_subcategoria s
-ON c.id_categoria = s.id_categoria
-WHERE NOT EXISTS(
-    SELECT 1
-    FROM g21_evento e
-    WHERE (s.id_categoria = e.id_categoria AND s.id_subcategoria = e.id_subcategoria)
+FROM gr21_categoria c JOIN gr21_subcategoria s ON c.id_categoria = s.id_categoria
+WHERE (
+    SELECT count(distinct id_subcategoria)
+    FROM gr21_evento e
+    WHERE e.id_categoria = s.id_categoria
+    GROUP BY id_categoria
+    ) = (
+        SELECT count(*)
+        FROM gr21_subcategoria s
+        WHERE s.id_categoria = c.id_categoria
+        GROUP BY c.id_categoria
     )
 GROUP BY c.id_categoria
 ORDER BY c.id_categoria;
---D-----------------SITIO-----------------
---1-Listado del TOP 10 de usuarios que participa en más eventos. getTopUsers
---view top 10 users -> actualizable
-CREATE VIEW G21_top_usuarios_events AS
-SELECT u.id_usuario, u.nombre, u.apellido, u.e_mail, u.password, count(*) AS cant_eventos_usuario
-FROM g21_usuario u
-JOIN g21_evento e
-ON u.id_usuario = e.id_usuario
-GROUP BY u.id_usuario
-ORDER BY 6 DESC, 1
-LIMIT 10;
---getView
-SELECT * FROM G21_top_usuarios_events;--vista de top users
---2-Listado de usuarios de acuerdo a un patrón de búsqueda que contenga todos los datos del usuario
--- junto con la cantidad de participaciones que tenga. getUserWithFilter() -> userDate+count(participation)
-
